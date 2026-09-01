@@ -312,3 +312,7 @@ MIT License — see [LICENSE](LICENSE)
 ---
 
 *Developed by Ali Shahmohammadi, Ph.D. — Takeda Pharmaceutical*
+
+---
+
+_Maintained on [alishahmohammadi26](https://github.com/alishahmohammadi26)._
