@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  # ── FastAPI backend ────────────────────────────────────────────────
+  fair_studio_api:
+    build:
+      context: .                        # fair_agent_webapp/
+      dockerfile: api/Dockerfile
+    ports:
+      - "8085:8000"
+    volumes:
+      - ./data:/app/data                # SQLite persistence
+      - ./fair_agent_core.py:/app/fair_agent_core.py  # hot-reload
+
+  # ── Vue 3 + Vite frontend ──────────────────────────────────────────
+  fair_studio_frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - fair_studio_api
+
+  # ── Mock data catalog ─────────────────────────────────────────────
+  mock_catalog:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./mock_catalog_api.py:/app/mock_catalog_api.py
+    command: >
+      sh -c "pip install -q fastapi uvicorn httpx &&
+             python -m uvicorn mock_catalog_api:app --host 0.0.0.0 --port 9321"
+    ports:
+      - "9321:9321"
+
+  # ── Streamlit catalog browser ──────────────────────────────────────
+  catalog_browser:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./catalog_browser_app.py:/app/catalog_browser_app.py
+    command: >
+      sh -c "pip install -q streamlit httpx &&
+             python -m streamlit run catalog_browser_app.py --server.port 8502 --server.headless true"
+    ports:
+      - "8502:8502"
+    depends_on:
+      - mock_catalog
